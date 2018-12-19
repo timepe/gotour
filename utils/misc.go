@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"io"
+	"strings"
+)
 
 // WordCount : count the words in `string`
 func WordCount(s string) map[string]int {
@@ -35,4 +38,53 @@ func Fibonacci() func() int {
 
 		return next
 	}
+}
+
+type rot13Reader struct {
+	r io.Reader
+}
+
+func (r *rot13Reader) Read(p []byte) (int, error) {
+	q := make([]byte, len(p))
+	n, err := r.Read(q)
+	if err != nil {
+		return -1, err
+	}
+
+	for i := 0; i < n; i++ {
+		p[i] = q[i] + (q[i]-'a'+13)%26
+	}
+
+	return n, nil
+}
+
+type tree struct {
+	Left  *tree
+	Value int
+	Right *tree
+}
+
+func walk(t *tree, c chan int) {
+	if t != nil {
+		walk(t.Left, c)
+		c <- t.Value
+		walk(t.Right, c)
+	}
+}
+
+func Same(t1, t2 *tree) bool {
+	c1 := make(chan int)
+	c2 := make(chan int)
+	for x := range c1 {
+		y, ok := <-c2
+		if !ok || x != y {
+			return false
+		}
+	}
+	y, ok := <-c2
+	if !ok {
+		return false
+	}
+
+	return true
 }
